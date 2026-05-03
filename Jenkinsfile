@@ -7,6 +7,7 @@ pipeline {
     }
 
     stages {
+
         stage('Clonar código') {
             steps {
                 checkout scm
@@ -33,7 +34,13 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $IMAGE_NAME:$VERSION'
+                sh '''
+                docker push $IMAGE_NAME:$VERSION
+
+                # cria tag latest baseada na versão atual
+                docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:latest
+                docker push $IMAGE_NAME:latest
+                '''
             }
         }
 
