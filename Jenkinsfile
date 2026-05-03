@@ -19,6 +19,13 @@ pipeline {
             }
         }
 
+        stage('Teste-Extra') {
+            steps {
+                sh 'echo "Rodando novo teste do pipeline..."'
+                sh 'docker images | grep $IMAGE_NAME || true'
+            }
+        }
+
         stage('Rodar Container') {
             steps {
                 sh 'docker run --rm $IMAGE_NAME:$VERSION'
