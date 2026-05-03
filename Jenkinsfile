@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "minha-app"
+        IMAGE_NAME = "amiranda1/meu-app"
         VERSION = "v1.${BUILD_NUMBER}"
     }
 
@@ -19,38 +19,21 @@ pipeline {
             }
         }
 
-        stage('Teste-Extra') {
+        stage('Login Docker Hub') {
             steps {
-                sh 'echo "Rodando teste extra..."'
-                sh 'docker images | grep $IMAGE_NAME || true'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
             }
         }
 
-        stage('Stress Test') {
+        stage('Push Docker Image') {
             steps {
-                sh '''
-                echo "Iniciando teste de carga..."
-                
-                for i in {1..5}
-                do
-                    echo "Execução $i"
-                    sleep 2
-                done
-
-                echo "Gerando carga de CPU..."
-                for i in {1..3}
-                do
-                    dd if=/dev/zero of=/dev/null bs=1M count=200
-                done
-
-                echo "Teste de carga finalizado"
-                '''
-            }
-        }
-
-        stage('Rodar Container') {
-            steps {
-                sh 'docker run --rm $IMAGE_NAME:$VERSION'
+                sh 'docker push $IMAGE_NAME:$VERSION'
             }
         }
 
